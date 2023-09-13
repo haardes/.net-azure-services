@@ -3,7 +3,7 @@
 public interface IAzureServiceFactory
 {
     /// <summary>
-    /// The <see cref="KeyVaultService"/> attribute returns an instance of <see cref="IKeyVaultService"/>. 
+    /// The <see cref="KeyVaultService"/> method returns an instance of <see cref="IKeyVaultService"/>. 
     /// If an <see cref="IKeyVaultService"/> has not previously been initialized in this <see cref="IAzureServiceFactory"/>, 
     /// the factory will try to initialize an instance with default values.
     /// The underlying method for initialization uses <see cref="AddKeyVaultService"/>. 
@@ -12,7 +12,7 @@ public interface IAzureServiceFactory
     /// <remarks>
     /// <para>An <see cref="Exception"/> will be thrown if an <see cref="IKeyVaultService"/> instance cannot be initialized with default values.</para>
     /// </remarks>
-    IKeyVaultService KeyVaultService { get; }
+    IKeyVaultService KeyVaultService();
 
     /// <summary>
     /// The <see cref="AddKeyVaultService"/> method initializes and registers an <see cref="IKeyVaultService"/> in this <see cref="IAzureServiceFactory"/>. This requires 

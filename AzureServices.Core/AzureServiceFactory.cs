@@ -3,17 +3,16 @@ public class AzureServiceFactory : IAzureServiceFactory
 {
     private IKeyVaultService? _keyVaultService;
 
-    public IKeyVaultService KeyVaultService
+    public IKeyVaultService KeyVaultService()
     {
-        get
-        {
-            if (_keyVaultService == null)
-            {
-                AddKeyVaultService();
-            }
 
-            return _keyVaultService!;
+        if (_keyVaultService == null)
+        {
+            AddKeyVaultService();
         }
+
+        return _keyVaultService!;
+
     }
 
     public IAzureServiceFactory AddKeyVaultService(bool replace = false)
@@ -34,7 +33,8 @@ public class AzureServiceFactory : IAzureServiceFactory
 
     private void ThrowIfShouldNotReplace<T>(T? instance, bool shouldReplace) where T : class
     {
-        if (instance != null && !shouldReplace) {
+        if (instance != null && !shouldReplace)
+        {
             throw new Exception($"{instance.GetType().Name} already exists for this instance of {GetType().Name}. " +
                     $"To replace the current {instance.GetType().Name}, set parameter replace to true.");
         }
