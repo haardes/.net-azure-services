@@ -18,15 +18,23 @@ public interface IAzureServiceFactory
     /// The <see cref="AddKeyVaultService"/> method initializes and registers an <see cref="IKeyVaultService"/> in this <see cref="IAzureServiceFactory"/>. This requires 
     /// a "KeyVaultUri" variable to be present in environment variables, in local.settings.json, or in the configuration.
     /// </summary>
+    /// <param name="replace">Determines if an existing <see cref="IKeyVaultService"/> should be replaced if it already exists.</param>
     /// <returns>This <see cref="IAzureServiceFactory"/>.</returns>
     /// <remarks>
     /// <para>An <see cref="ArgumentNullException"/> will be thrown if a variable for "KeyVaultUri" is not found.</para>
     /// </remarks>
-    IAzureServiceFactory AddKeyVaultService();
+    /// <exception cref="ArgumentNullException">Thrown if keyVaultUri is <c>null</c> or empty.</exception>
+    IAzureServiceFactory AddKeyVaultService(bool replace = false);
 
     /// <summary>
-    /// The <see cref="AddKeyVaultService(string)"/> method initializes and registers an <see cref="IKeyVaultService"/> in this <see cref="IAzureServiceFactory"/>.
+    /// The <see cref="AddKeyVaultService(string, bool)"/> method initializes and registers an <see cref="IKeyVaultService"/> in this <see cref="IAzureServiceFactory"/>.
     /// </summary>
+    /// <param name="keyVaultUri">Determines if an existing <see cref="IKeyVaultService"/> should be replaced if it already exists.</param>
+    /// <param name="replace">Determines if an existing <see cref="IKeyVaultService"/> should be replaced if it already exists.</param>
+    /// <remarks>
+    /// <para>An <see cref="ArgumentNullException"/> will be thrown if a variable for "KeyVaultUri" is not found.</para>
+    /// </remarks>
     /// <returns>This <see cref="IAzureServiceFactory"/>.</returns>
-    IAzureServiceFactory AddKeyVaultService(string keyVaultUri);
+    /// <exception cref="ArgumentNullException">Thrown if keyVaultUri is <c>null</c> or empty.</exception>
+    IAzureServiceFactory AddKeyVaultService(string keyVaultUri, bool replace = false);
 }
