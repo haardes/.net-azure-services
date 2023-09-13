@@ -37,4 +37,17 @@ public interface IAzureServiceFactory
     /// <returns>This <see cref="IAzureServiceFactory"/>.</returns>
     /// <exception cref="ArgumentNullException">Thrown if keyVaultUri is <c>null</c> or empty.</exception>
     IAzureServiceFactory AddKeyVaultService(string keyVaultUri, bool replace = false);
+
+    /// <summary>
+    /// The <see cref="ThrowIfShouldNotReplace{T}(T, bool)"/> method checks if the <paramref name="instance"/> <typeparamref name="T"/> already exists, 
+    /// and throws if it exists and the parameter <paramref name="shouldReplace"/> is false.
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
+    /// <param name="instance"></param>
+    /// <param name="shouldReplace">Whether to replace the <paramref name="instance"/> <typeparamref name="T"/> if it exists.</param>
+    /// <remarks>
+    /// <para>An <see cref="Exception"/> will be thrown if the <paramref name="instance"/> <typeparamref name="T"/> exists and <paramref name="shouldReplace"/> is false.</para>
+    /// </remarks>
+    /// <exception cref="Exception">Thrown if the <paramref name="instance"/> <typeparamref name="T"/> exists and <paramref name="shouldReplace"/> is false.</exception>
+    void ThrowIfShouldNotReplace<T>(T? instance, bool shouldReplace) where T : class;
 }
