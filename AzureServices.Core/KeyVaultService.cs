@@ -8,8 +8,24 @@ public class KeyVaultService : IKeyVaultService
     private readonly SecretClient _secretClient;
     private readonly Dictionary<string, string> _secretMap = new();
 
+    /// <summary>
+    /// Creates an instance of a <see cref="KeyVaultService"/> using a KeyVaultUri variable in app.settings.json, 
+    /// the configuration values, or the environment variables.
+    /// </summary>
+    /// <remarks>
+    /// <para>An <see cref="ArgumentNullException"/> will be thrown if a variable for "KeyVaultUri" is not found.</para>
+    /// </remarks>
+    /// <exception cref="ArgumentNullException">Thrown if a variable for "KeyVaultUri" is not found.</exception>
     public KeyVaultService() : this(Environment.GetEnvironmentVariable("KeyVaultUri")) { }
 
+    /// <summary>
+    /// Creates an instance of a <see cref="KeyVaultService"/> with the given keyVaultUri.
+    /// </summary>
+    /// <param name="keyVaultUri">the URI to connect to.</param>
+    /// <remarks>
+    /// <para>An <see cref="ArgumentNullException"/> will be thrown if keyVaultUri is <c>null</c> or empty.</para>
+    /// </remarks>
+    /// <exception cref="ArgumentNullException">Thrown if keyVaultUri is <c>null</c> or empty.</exception>
     public KeyVaultService(string? keyVaultUri)
     {
         if (string.IsNullOrEmpty(keyVaultUri))
