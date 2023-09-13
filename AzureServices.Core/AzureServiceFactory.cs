@@ -31,7 +31,7 @@ public class AzureServiceFactory : IAzureServiceFactory
         return this;
     }
 
-    private void ThrowIfShouldNotReplace<T>(T? instance, bool shouldReplace) where T : class
+    public void ThrowIfShouldNotReplace<T>(T? instance, bool shouldReplace) where T : class
     {
         if (instance != null && !shouldReplace)
         {
