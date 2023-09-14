@@ -11,11 +11,18 @@ public class BlobService : IBlobService
     private readonly BlobServiceClient _blobServiceClient;
 
     /// <summary>
-    /// For more information on how this constructor works, see <see href="https://github.com/haardes/.net-azure-services"/>.
+    /// Calls <see cref="BlobService(KeyOptions)"/> with <c>new KeyOptions()</c>. For more information on how this constructor works, see <see href="https://github.com/haardes/.net-azure-services"/>.
     /// </summary>
-    /// <exception cref="Exception"></exception>
     public BlobService() : this(new KeyOptions()) { }
 
+    /// <summary>
+    /// Creates an instance of <see cref="BlobService"/> using the given <paramref name="keyOptions"/>. See <see href="https://github.com/haardes/.net-azure-services"/> for more information on how this constructor works.
+    /// </summary>
+    /// <param name="keyOptions"></param>
+    /// <remarks>
+    /// <para>An <see cref="Exception"/> will be thrown if no valid combination of variables are found as either environment variables or as KeyVault secrets.</para>
+    /// </remarks>
+    /// <exception cref="Exception">Thrown if no valid combination of variables are found as either environment variables or as KeyVault secrets.</exception>
     public BlobService(KeyOptions keyOptions)
     {
         TryGetVariable(keyOptions.StorageAccount(), out string? storageAccount);
