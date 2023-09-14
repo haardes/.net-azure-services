@@ -2,7 +2,13 @@
 
 public class AzureServiceFactory : IAzureServiceFactory
 {
+    private readonly KeyOptions _keyOptions = new();
     private IKeyVaultService? _keyVaultService;
+
+    public KeyOptions KeyOptions()
+    {
+        return _keyOptions;
+    }
 
     public IKeyVaultService KeyVaultService()
     {
@@ -13,6 +19,11 @@ public class AzureServiceFactory : IAzureServiceFactory
         }
 
         return _keyVaultService!;
+    }
+
+    public AzureServiceFactory(KeyOptions keyOptions)
+    {
+        _keyOptions = keyOptions;
     }
 
     public IAzureServiceFactory AddKeyVaultService(bool replace = false)
