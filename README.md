@@ -1,1 +1,1 @@
-# AzureServices
+# .net-azure-services
