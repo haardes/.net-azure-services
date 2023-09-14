@@ -1,4 +1,5 @@
 ﻿namespace AzureServices.Core;
+
 public class AzureServiceFactory : IAzureServiceFactory
 {
     private IKeyVaultService? _keyVaultService;
@@ -12,7 +13,6 @@ public class AzureServiceFactory : IAzureServiceFactory
         }
 
         return _keyVaultService!;
-
     }
 
     public IAzureServiceFactory AddKeyVaultService(bool replace = false)
