@@ -16,7 +16,6 @@ public class BlobService : IBlobService
 
     public BlobServiceClient GetServiceClient()
     {
-        var fac = new AzureServiceFactory().BlobService();
         return _blobServiceClient;
     }
 

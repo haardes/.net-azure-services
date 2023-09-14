@@ -8,7 +8,12 @@ public static class AzureServiceFactoryExtensions
 
     public static IBlobService BlobService(this IAzureServiceFactory azureServiceFactory)
     {
-        return _blobService;
+        if (_blobService == null)
+        {
+            AddBlobService(azureServiceFactory);
+        }
+
+        return _blobService!;
     }
 
     public static void AddBlobService(this IAzureServiceFactory azureServiceFactory)
