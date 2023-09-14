@@ -21,6 +21,8 @@ public class AzureServiceFactory : IAzureServiceFactory
         return _keyVaultService!;
     }
 
+    public AzureServiceFactory() { }
+
     public AzureServiceFactory(KeyOptions keyOptions)
     {
         _keyOptions = keyOptions;
