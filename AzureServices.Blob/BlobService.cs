@@ -14,19 +14,23 @@ public class BlobService : IBlobService
     /// For more information on how this constructor works, see <see href="https://github.com/haardes/.net-azure-services"/>.
     /// </summary>
     /// <exception cref="Exception"></exception>
-    public BlobService()
+    public BlobService() : this(new KeyOptions()) { }
+
+    public BlobService(KeyOptions keyOptions)
     {
-        TryGetVariable("StorageAccount", out string? storageAccount);
-        TryGetVariable("StorageAccount", out string? storageKey);
-        TryGetVariable("StorageAccount", out string? connectionString);
+        TryGetVariable(keyOptions.StorageAccount(), out string? storageAccount);
+        TryGetVariable(keyOptions.StorageKey(), out string? storageKey);
+        TryGetVariable(keyOptions.StorageConnectionString(), out string? connectionString);
 
         if (!string.IsNullOrEmpty(storageAccount) && !string.IsNullOrEmpty(storageKey))
         {
             _blobServiceClient = GetBlobServiceClientFrom(storageAccount, storageKey);
-        } else if (!string.IsNullOrEmpty(connectionString))
+        }
+        else if (!string.IsNullOrEmpty(connectionString))
         {
             _blobServiceClient = GetBlobServiceClientFrom(connectionString);
-        } else
+        }
+        else
         {
             throw new Exception($"Error when registering BlobServiceClient. Use another constructor or see https://github.com/haardes/.net-azure-services for details on how to use the parameterless BlobService() constructor.");
         }
