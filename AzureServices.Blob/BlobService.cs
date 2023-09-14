@@ -70,8 +70,18 @@ public class BlobService : IBlobService
 
     public BlobClient GetBlob(string blobName)
     {
-        ThrowIfNotValidBlobName();
-        throw new NotImplementedException();
+        ThrowIfNotValidBlobName(blobName);
+        var paths = blobName.Split('/');
+
+        if (paths.Length < 2)
+        {
+            paths = blobName.Split('\\');
+        }
+
+        var container = paths.First();
+        blobName = string.Join('/', paths.Skip(1));
+
+        return GetBlob(container, blobName);
     }
 
     public BlobClient GetBlob(string containerName, string blobName)
@@ -108,6 +118,37 @@ public class BlobService : IBlobService
         }
 
         return container.GetBlobs(prefix: prefix).ToList();
+    }
+
+    public void UploadBlob(string containerName, string blobName, Stream blobContent, BlobUploadOptions uploadOptions)
+    {
+        BlobContainerClient containerClient = GetContainerClient(containerName);
+
+        if (!containerClient.Exists())
+        {
+            throw new DirectoryNotFoundException($"Container {containerName} does not exist.");
+        }
+
+        try
+        {
+            blobContent.Position = 0;
+            containerClient.GetBlobClient(blobName).Upload(blobContent, uploadOptions);
+        }
+        finally
+        {
+            blobContent.Dispose();
+        }
+    }
+
+    public void UploadBlob(string containerName, string blobName, string blobContent, BlobUploadOptions uploadOptions)
+    {
+        MemoryStream memory = new();
+        StreamWriter writer = new(memory);
+        writer.Write(blobContent);
+        writer.Flush();
+
+        UploadBlob(containerName, blobName, memory, uploadOptions);
+        writer.Dispose();
     }
 
     public void UploadBlob(string containerName, string blobName, Stream blobContent, bool overwrite = false)
@@ -156,9 +197,18 @@ public class BlobService : IBlobService
         writer.Dispose();
     }
 
-    private void ThrowIfNotValidBlobName()
+    private void ThrowIfNotValidBlobName(string name)
     {
-        throw new NotImplementedException();
+        var container = name.Split('/').FirstOrDefault(string.Empty);
+
+        if (string.IsNullOrEmpty(container))
+        {
+            container = name.Split('\\').FirstOrDefault(string.Empty);
+            if (string.IsNullOrEmpty(container))
+            {
+                throw new Exception("Blob name does not contain a first \"directory\", and a container name can therefore not be assumed. Check blobName/path.");
+            }
+        }
     }
 
     private static void TryGetVariable(string key, out string? value)
