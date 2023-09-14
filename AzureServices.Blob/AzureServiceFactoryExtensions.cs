@@ -18,7 +18,12 @@ public static class AzureServiceFactoryExtensions
     /// <returns>An instance of <see cref="IBlobService"/>.</returns>
     public static ref readonly IBlobService BlobService(this IAzureServiceFactory azureServiceFactory)
     {
-        return ref _blobService;
+        if (_blobService == null)
+        {
+            AddBlobService(azureServiceFactory);
+        }
+
+        return ref _blobService!;
     }
 
     /// <summary>
