@@ -16,10 +16,6 @@ public interface IBlobService
     /// The <see cref="GetContainerClient(string)"/> method returns a <see cref="BlobContainerClient"/> for the given <paramref name="container"/>.
     /// </summary>
     /// <param name="container">Name of container.</param>
-    /// <remarks>
-    /// <para>A <see cref="DirectoryNotFoundException"/> will be thrown if the container does not exist.</para>
-    /// </remarks>
-    /// <exception cref="DirectoryNotFoundException">Thrown if the container does not exist.</exception>
     /// <returns>The <see cref="BlobContainerClient"/> for the given <paramref name="container"/>.</returns>
     BlobContainerClient GetContainerClient(string container);
 
