@@ -1,4 +1,5 @@
 ﻿using AzureServices.Core;
+using System.Runtime.CompilerServices;
 
 namespace AzureServices.Blob;
 
@@ -40,7 +41,7 @@ public static class AzureServiceFactoryExtensions
     {
         azureServiceFactory.ThrowIfShouldNotReplace(_blobService, replace);
 
-        _blobService = new BlobService();
+        _blobService = new BlobService(azureServiceFactory.KeyOptions());
         return azureServiceFactory;
     }
 }

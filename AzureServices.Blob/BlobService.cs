@@ -11,22 +11,33 @@ public class BlobService : IBlobService
     private readonly BlobServiceClient _blobServiceClient;
 
     /// <summary>
-    /// For more information on how this constructor works, see <see href="https://github.com/haardes/.net-azure-services"/>.
+    /// Calls <see cref="BlobService(KeyOptions)"/> with <c>new KeyOptions()</c>. For more information on how this constructor works, see <see href="https://github.com/haardes/.net-azure-services"/>.
     /// </summary>
-    /// <exception cref="Exception"></exception>
-    public BlobService()
+    public BlobService() : this(new KeyOptions()) { }
+
+    /// <summary>
+    /// Creates an instance of <see cref="BlobService"/> using the given <paramref name="keyOptions"/>. See <see href="https://github.com/haardes/.net-azure-services"/> for more information on how this constructor works.
+    /// </summary>
+    /// <param name="keyOptions"></param>
+    /// <remarks>
+    /// <para>An <see cref="Exception"/> will be thrown if no valid combination of variables are found as either environment variables or as KeyVault secrets.</para>
+    /// </remarks>
+    /// <exception cref="Exception">Thrown if no valid combination of variables are found as either environment variables or as KeyVault secrets.</exception>
+    public BlobService(KeyOptions keyOptions)
     {
-        TryGetVariable("StorageAccount", out string? storageAccount);
-        TryGetVariable("StorageAccount", out string? storageKey);
-        TryGetVariable("StorageAccount", out string? connectionString);
+        TryGetVariable(keyOptions.StorageAccount(), out string? storageAccount);
+        TryGetVariable(keyOptions.StorageKey(), out string? storageKey);
+        TryGetVariable(keyOptions.StorageConnectionString(), out string? connectionString);
 
         if (!string.IsNullOrEmpty(storageAccount) && !string.IsNullOrEmpty(storageKey))
         {
             _blobServiceClient = GetBlobServiceClientFrom(storageAccount, storageKey);
-        } else if (!string.IsNullOrEmpty(connectionString))
+        }
+        else if (!string.IsNullOrEmpty(connectionString))
         {
             _blobServiceClient = GetBlobServiceClientFrom(connectionString);
-        } else
+        }
+        else
         {
             throw new Exception($"Error when registering BlobServiceClient. Use another constructor or see https://github.com/haardes/.net-azure-services for details on how to use the parameterless BlobService() constructor.");
         }
