@@ -23,7 +23,7 @@ public static class AzureServiceFactoryExtensions
             AddBlobService(azureServiceFactory);
         }
 
-        return ref _blobService;
+        return ref _blobService!;
     }
 
     /// <summary>

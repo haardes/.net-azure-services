@@ -1,4 +1,5 @@
 ﻿using Azure;
+using Azure.Storage;
 using Azure.Storage.Blobs;
 using Azure.Storage.Blobs.Models;
 using AzureServices.Core;
@@ -9,9 +10,41 @@ public class BlobService : IBlobService
 {
     private readonly BlobServiceClient _blobServiceClient;
 
+    /// <summary>
+    /// For more information on how this constructor works, see <see href="https://github.com/haardes/.net-azure-services"/>.
+    /// </summary>
+    /// <exception cref="Exception"></exception>
+    public BlobService()
+    {
+        TryGetVariable("StorageAccount", out string? storageAccount);
+        TryGetVariable("StorageAccount", out string? storageKey);
+        TryGetVariable("StorageAccount", out string? connectionString);
+
+        if (!string.IsNullOrEmpty(storageAccount) && !string.IsNullOrEmpty(storageKey))
+        {
+            _blobServiceClient = GetBlobServiceClientFrom(storageAccount, storageKey);
+        } else if (!string.IsNullOrEmpty(connectionString))
+        {
+            _blobServiceClient = GetBlobServiceClientFrom(connectionString);
+        } else
+        {
+            throw new Exception($"Error when registering BlobServiceClient. Use another constructor or see https://github.com/haardes/.net-azure-services for details on how to use the parameterless BlobService() constructor.");
+        }
+    }
+
     public BlobService(BlobServiceClient blobServiceClient)
     {
         _blobServiceClient = blobServiceClient;
+    }
+
+    public BlobService(string connectionString)
+    {
+        _blobServiceClient = GetBlobServiceClientFrom(connectionString);
+    }
+
+    public BlobService(string storageAccount, string storageKey)
+    {
+        _blobServiceClient = GetBlobServiceClientFrom(storageAccount, storageKey);
     }
 
     public BlobServiceClient GetServiceClient()
@@ -115,5 +148,25 @@ public class BlobService : IBlobService
     private void ThrowIfNotValidBlobName()
     {
         throw new NotImplementedException();
+    }
+
+    private static void TryGetVariable(string key, out string? value)
+    {
+        value = Environment.GetEnvironmentVariable(key);
+
+        if (string.IsNullOrEmpty(value))
+        {
+            value = new AzureServiceFactory().KeyVaultService().GetSecret(key);
+        }
+    }
+
+    private static BlobServiceClient GetBlobServiceClientFrom(string storage, string? key = null)
+    {
+        if (string.IsNullOrEmpty(key))
+        {
+            return new(storage);
+        }
+
+        return new(new($"https://{storage}.blob.core.windows.net/"), new StorageSharedKeyCredential(storage, key));
     }
 }
