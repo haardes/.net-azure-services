@@ -3,6 +3,12 @@
 public interface IAzureServiceFactory
 {
     /// <summary>
+    /// The <see cref="KeyOptions"/> method returns the <see cref="Core.KeyOptions"/> instance for this <see cref="IAzureServiceFactory"/>. 
+    /// </summary>
+    /// <returns>An instance of <see cref="IKeyVaultService"/>.</returns>
+    KeyOptions KeyOptions();
+
+    /// <summary>
     /// The <see cref="KeyVaultService"/> method returns an instance of <see cref="IKeyVaultService"/>. 
     /// If an <see cref="IKeyVaultService"/> has not previously been initialized in this <see cref="IAzureServiceFactory"/>, 
     /// the factory will try to initialize an instance with default values.
