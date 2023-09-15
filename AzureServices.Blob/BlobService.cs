@@ -68,20 +68,20 @@ public class BlobService : IBlobService
         return _blobServiceClient.GetBlobContainerClient(containerName);
     }
 
-    public BlobClient GetBlob(string blobName)
+    public BlobClient GetBlob(string blobPath)
     {
-        ThrowIfNotValidBlobName(blobName);
-        var paths = blobName.Split('/');
+        ThrowIfNotValidBlobName(blobPath);
+        var paths = blobPath.Split('/');
 
         if (paths.Length < 2)
         {
-            paths = blobName.Split('\\');
+            paths = blobPath.Split('\\');
         }
 
         var container = paths.First();
-        blobName = string.Join('/', paths.Skip(1));
+        blobPath = string.Join('/', paths.Skip(1));
 
-        return GetBlob(container, blobName);
+        return GetBlob(container, blobPath);
     }
 
     public BlobClient GetBlob(string containerName, string blobName)
@@ -118,37 +118,6 @@ public class BlobService : IBlobService
         }
 
         return container.GetBlobs(prefix: prefix).ToList();
-    }
-
-    public void UploadBlob(string containerName, string blobName, Stream blobContent, BlobUploadOptions uploadOptions)
-    {
-        BlobContainerClient containerClient = GetContainerClient(containerName);
-
-        if (!containerClient.Exists())
-        {
-            throw new DirectoryNotFoundException($"Container {containerName} does not exist.");
-        }
-
-        try
-        {
-            blobContent.Position = 0;
-            containerClient.GetBlobClient(blobName).Upload(blobContent, uploadOptions);
-        }
-        finally
-        {
-            blobContent.Dispose();
-        }
-    }
-
-    public void UploadBlob(string containerName, string blobName, string blobContent, BlobUploadOptions uploadOptions)
-    {
-        MemoryStream memory = new();
-        StreamWriter writer = new(memory);
-        writer.Write(blobContent);
-        writer.Flush();
-
-        UploadBlob(containerName, blobName, memory, uploadOptions);
-        writer.Dispose();
     }
 
     public void UploadBlob(string containerName, string blobName, Stream blobContent, bool overwrite = false)
@@ -194,6 +163,37 @@ public class BlobService : IBlobService
         writer.Flush();
 
         UploadBlob(containerName, blobName, memory, overwrite);
+        writer.Dispose();
+    }
+
+    public void UploadBlob(string containerName, string blobName, Stream blobContent, BlobUploadOptions uploadOptions)
+    {
+        BlobContainerClient containerClient = GetContainerClient(containerName);
+
+        if (!containerClient.Exists())
+        {
+            throw new DirectoryNotFoundException($"Container {containerName} does not exist.");
+        }
+
+        try
+        {
+            blobContent.Position = 0;
+            containerClient.GetBlobClient(blobName).Upload(blobContent, uploadOptions);
+        }
+        finally
+        {
+            blobContent.Dispose();
+        }
+    }
+
+    public void UploadBlob(string containerName, string blobName, string blobContent, BlobUploadOptions uploadOptions)
+    {
+        MemoryStream memory = new();
+        StreamWriter writer = new(memory);
+        writer.Write(blobContent);
+        writer.Flush();
+
+        UploadBlob(containerName, blobName, memory, uploadOptions);
         writer.Dispose();
     }
 
