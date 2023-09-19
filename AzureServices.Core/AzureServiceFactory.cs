@@ -2,8 +2,8 @@
 
 public class AzureServiceFactory : IAzureServiceFactory
 {
-    private readonly KeyOptions _keyOptions = new();
-    private IKeyVaultService? _keyVaultService;
+    public static KeyOptions _keyOptions = new();
+    private static IKeyVaultService? _keyVaultService;
 
     public KeyOptions KeyOptions()
     {
@@ -50,6 +50,21 @@ public class AzureServiceFactory : IAzureServiceFactory
         {
             throw new Exception($"{instance.GetType().Name} already exists for this instance of {GetType().Name}. " +
                     $"To replace the current {instance.GetType().Name}, set parameter replace to true.");
+        }
+    }
+
+    public static void TryGetVariable(string key, out string? value)
+    {
+        value = Environment.GetEnvironmentVariable(key);
+
+        if (string.IsNullOrEmpty(value))
+        {
+            if (_keyVaultService == null)
+            {
+                throw new Exception("KeyVaultService not yet initialized.");
+            }
+
+            value = _keyVaultService.GetSecret(key);
         }
     }
 }
