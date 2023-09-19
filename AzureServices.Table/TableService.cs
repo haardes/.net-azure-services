@@ -22,9 +22,9 @@ public class TableService : ITableService
     /// <exception cref="Exception">Thrown if no valid combination of variables are found as either environment variables or as KeyVault secrets.</exception>
     public TableService(KeyOptions keyOptions)
     {
-        TryGetVariable(keyOptions.StorageAccount(), out string? storageAccount);
-        TryGetVariable(keyOptions.StorageKey(), out string? storageKey);
-        TryGetVariable(keyOptions.StorageConnectionString(), out string? connectionString);
+        AzureServiceFactory.TryGetVariable(keyOptions.StorageAccount(), out string? storageAccount);
+        AzureServiceFactory.TryGetVariable(keyOptions.StorageKey(), out string? storageKey);
+        AzureServiceFactory.TryGetVariable(keyOptions.StorageConnectionString(), out string? connectionString);
 
         if (!string.IsNullOrEmpty(storageAccount) && !string.IsNullOrEmpty(storageKey))
         {
@@ -58,16 +58,6 @@ public class TableService : ITableService
     public TableServiceClient GetServiceClient()
     {
         return _tableServiceClient;
-    }
-
-    private static void TryGetVariable(string key, out string? value)
-    {
-        value = Environment.GetEnvironmentVariable(key);
-
-        if (string.IsNullOrEmpty(value))
-        {
-            value = new AzureServiceFactory().KeyVaultService().GetSecret(key);
-        }
     }
 
     private static TableServiceClient GetTableServiceClientFrom(string storage, string? key = null)
