@@ -130,6 +130,8 @@ public class DeltaService : IDeltaService
         return csv;
     }
 
+    // TODO: Handle empty results (no rows found)
+
     public async Task WriteDeltaTableToResponse(HttpResponse response, string schema, string statement, string catalog = "hive_metastore", string disposition = "EXTERNAL_LINKS", string filename = "")
     {
         (bool IsInitialized, string Message) status = IsInitialized();
