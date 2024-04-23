@@ -85,4 +85,30 @@ public interface IBlobService
     /// <exception cref="DirectoryNotFoundException">Thrown if the container does not exist.</exception>
     /// <exception cref="RequestFailedException">Thrown if the blob already exists and overwrite is not set, or a failure occurs.</exception>
     void UploadBlob(string container, string blobName, string blobContent, bool overwrite = false);
+
+    /// <summary>
+    /// The <see cref="UploadBlob(string, string, Stream, BlobUploadOptions)"/> method uploads a stream to the specified container, with the given <see cref="BlobUploadOptions"/>.
+    /// </summary>
+    /// <param name="containerName"></param>
+    /// <param name="blobName"></param>
+    /// <param name="blobContent"></param>
+    /// <param name="uploadOptions"></param>
+    /// <remarks>
+    /// <para>A <see cref="DirectoryNotFoundException"/> will be thrown if the container does not exist.</para>
+    /// </remarks>
+    /// <exception cref="DirectoryNotFoundException">Thrown if the container does not exist.</exception>
+    void UploadBlob(string containerName, string blobName, Stream blobContent, BlobUploadOptions uploadOptions);
+
+    /// <summary>
+    /// The <see cref="UploadBlob(string, string, string, BlobUploadOptions)"/> method uploads a string to the specified container, with the given <see cref="BlobUploadOptions"/>.
+    /// </summary>
+    /// <param name="containerName"></param>
+    /// <param name="blobName"></param>
+    /// <param name="blobContent"></param>
+    /// <param name="uploadOptions"></param>
+    /// <remarks>
+    /// <para>A <see cref="DirectoryNotFoundException"/> will be thrown if the container does not exist.</para>
+    /// </remarks>
+    /// <exception cref="DirectoryNotFoundException">Thrown if the container does not exist.</exception>
+    void UploadBlob(string containerName, string blobName, string blobContent, BlobUploadOptions uploadOptions);
 }
