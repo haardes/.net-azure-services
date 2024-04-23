@@ -17,6 +17,14 @@ public class DeltaService : IDeltaService
     private readonly string? _workspaceUri;
     private readonly HttpClient _deltaClient = new();
 
+    public string? WarehouseId
+    {
+        get
+        {
+            return _warehouseId;
+        }
+    }
+
     public DeltaService()
     {
     }
@@ -130,6 +138,8 @@ public class DeltaService : IDeltaService
         return csv;
     }
 
+    // TODO: Handle empty results (no rows found)
+
     public async Task WriteDeltaTableToResponse(HttpResponse response, string schema, string statement, string catalog = "hive_metastore", string disposition = "EXTERNAL_LINKS", string filename = "")
     {
         (bool IsInitialized, string Message) status = IsInitialized();
@@ -215,7 +225,7 @@ public class DeltaService : IDeltaService
         return csv;
     }
 
-    private Result? FetchNextResult(Result currentResult)
+    public Result? FetchNextResult(Result currentResult)
     {
         string? nextChunkInternalLink = currentResult.ExternalLinks.FirstOrDefault()?.NextChunkInternalLink;
         if (string.IsNullOrEmpty(nextChunkInternalLink))
@@ -236,7 +246,7 @@ public class DeltaService : IDeltaService
         return JsonSerializer.Deserialize<Result>(json);
     }
 
-    private string FetchCsvFromResult(Result currentResult, SqlWarehouseResponse metadata, ref bool hasHeaders)
+    public string FetchCsvFromResult(Result currentResult, SqlWarehouseResponse metadata, ref bool hasHeaders)
     {
         string? externalLink = currentResult.ExternalLinks.FirstOrDefault()?.ExternalLink;
         if (string.IsNullOrEmpty(externalLink))
@@ -314,10 +324,7 @@ public class DeltaService : IDeltaService
         return text;
     }
 
-    /// <summary>
-    /// The <see cref="IsInitialized"/> operation verifies that all necessary attributes has values.
-    /// </summary>
-    private (bool IsInitialized, string Message) IsInitialized()
+    public (bool IsInitialized, string Message) IsInitialized()
     {
         string message = "";
 
