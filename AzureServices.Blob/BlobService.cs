@@ -25,9 +25,9 @@ public class BlobService : IBlobService
     /// <exception cref="Exception">Thrown if no valid combination of variables are found as either environment variables or as KeyVault secrets.</exception>
     public BlobService(KeyOptions keyOptions)
     {
-        TryGetVariable(keyOptions.StorageAccount(), out string? storageAccount);
-        TryGetVariable(keyOptions.StorageKey(), out string? storageKey);
-        TryGetVariable(keyOptions.StorageConnectionString(), out string? connectionString);
+        AzureServiceFactory.TryGetVariable(keyOptions.StorageAccount(), out string? storageAccount);
+        AzureServiceFactory.TryGetVariable(keyOptions.StorageKey(), out string? storageKey);
+        AzureServiceFactory.TryGetVariable(keyOptions.StorageConnectionString(), out string? connectionString);
 
         if (!string.IsNullOrEmpty(storageAccount) && !string.IsNullOrEmpty(storageKey))
         {
@@ -208,16 +208,6 @@ public class BlobService : IBlobService
             {
                 throw new Exception("Blob name does not contain a first \"directory\", and a container name can therefore not be assumed. Check blobName/path.");
             }
-        }
-    }
-
-    private static void TryGetVariable(string key, out string? value)
-    {
-        value = Environment.GetEnvironmentVariable(key);
-
-        if (string.IsNullOrEmpty(value))
-        {
-            value = new AzureServiceFactory().KeyVaultService().GetSecret(key);
         }
     }
 
