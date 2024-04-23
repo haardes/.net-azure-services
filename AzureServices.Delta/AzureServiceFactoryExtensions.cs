@@ -15,7 +15,7 @@ public static class AzureServiceFactoryExtensions
     /// The <see cref="DeltaService(IAzureServiceFactory)"/> method returns an instance of <see cref="IDeltaService"/>. 
     /// If an <see cref="IDeltaService"/> has not previously been initialized in this <see cref="IAzureServiceFactory"/>, 
     /// the factory will try to initialize an instance with default values.
-    /// The underlying method for initialization uses <see cref="AddKeyVaultService"/>. 
+    /// The underlying method for initialization uses <see cref="AddDeltaService"/>. 
     /// </summary>
     /// <remarks>
     /// <para>An <see cref="Exception"/> will be thrown if an <see cref="IDeltaService"/> instance cannot be initialized with default values.</para>
