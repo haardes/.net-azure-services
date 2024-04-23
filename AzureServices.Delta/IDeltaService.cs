@@ -30,8 +30,6 @@ public interface IDeltaService
     /// </remarks>
     string GetDeltaTableContent(string schema, string statement, string catalog = "hive_metastore", string disposition = "EXTERNAL_LINKS");
 
-    Task WriteDeltaTableToResponse(HttpResponse response, string schema, string statement, string catalog = "hive_metastore", string disposition = "EXTERNAL_LINKS", string filename = "");
-
     /// <summary>
     /// The <see cref="FetchMetadataAndAwaitSuccess"/> operation sends a POST-request to databricks with a 
     /// <see cref="SqlWarehouseQuery"/> and returns the resulting <see cref="SqlWarehouseResponse"/>.
