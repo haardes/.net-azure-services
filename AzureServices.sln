@@ -9,7 +9,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AzureServices.Blob", "Azure
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AzureServices.Table", "AzureServices.Table\AzureServices.Table.csproj", "{F7A3BE70-4953-412C-BBAF-1A5715CEAED6}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AzureServices.Delta", "AzureServices.Delta\AzureServices.Delta.csproj", "{0092FC3B-07B8-44CD-B06C-D07C0AE0D816}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AzureServices.Delta", "AzureServices.Delta\AzureServices.Delta.csproj", "{0092FC3B-07B8-44CD-B06C-D07C0AE0D816}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AzureServices.Delta.Specialized", "AzureServices.Delta.Specialized\AzureServices.Delta.Specialized.csproj", "{5661C9AA-C562-4215-8E28-6F13BAB3E4C0}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -33,6 +35,10 @@ Global
 		{0092FC3B-07B8-44CD-B06C-D07C0AE0D816}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{0092FC3B-07B8-44CD-B06C-D07C0AE0D816}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{0092FC3B-07B8-44CD-B06C-D07C0AE0D816}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5661C9AA-C562-4215-8E28-6F13BAB3E4C0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5661C9AA-C562-4215-8E28-6F13BAB3E4C0}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5661C9AA-C562-4215-8E28-6F13BAB3E4C0}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5661C9AA-C562-4215-8E28-6F13BAB3E4C0}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
