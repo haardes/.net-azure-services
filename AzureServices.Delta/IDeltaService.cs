@@ -11,6 +11,8 @@ namespace AzureServices.Delta;
 
 public interface IDeltaService
 {
+    public string WarehouseId { get; }
+
     /// <summary>
     /// The <see cref="GetDeltaTableContent"/> operation queries a databricks SQL warehouse using the specified
     /// schema, statement and catalog, and returns the result as a CSV-formatted string.
@@ -42,6 +44,10 @@ public interface IDeltaService
     /// </remarks>
     SqlWarehouseResponse FetchMetadataAndAwaitSuccess(SqlWarehouseQuery query);
 
+    Result? FetchNextResult(Result currentResult);
+
+    string FetchCsvFromResult(Result currentResult, SqlWarehouseResponse metadata, ref bool hasHeaders);
+
     /// <summary>
     /// The <see cref="AddAzureKeyVault(string, KeyOptions)"/> operation creates a <see cref="SecretClient"/> and extracts secrets 
     /// using the secret-names from the given <see cref="KeyOptions"/>, or the default secret names if not given. 
@@ -64,4 +70,9 @@ public interface IDeltaService
     /// <para>An <see cref="Azure.RequestFailedException"/> will be thrown if the key-vault does not contain the listed secrets.</para>
     /// </remarks>
     DeltaService AddAzureKeyVault(SecretClient secretClient, KeyOptions? options);
+
+    /// <summary>
+    /// The <see cref="IsInitialized"/> operation verifies that all necessary attributes has values.
+    /// </summary>
+    (bool IsInitialized, string Message) IsInitialized();
 }
