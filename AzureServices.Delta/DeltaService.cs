@@ -138,9 +138,7 @@ public class DeltaService : IDeltaService
         return csv;
     }
 
-    // TODO: Handle empty results (no rows found)
-
-    public async Task WriteDeltaTableToResponse(HttpResponse response, string schema, string statement, string catalog = "hive_metastore", string disposition = "EXTERNAL_LINKS", string filename = "")
+    public string GetDeltaTableContent(string schema, string statement, IEnumerable<QueryParameters> parameters, string catalog = "hive_metastore", string disposition = "EXTERNAL_LINKS")
     {
         (bool IsInitialized, string Message) status = IsInitialized();
         if (!status.IsInitialized)
@@ -148,30 +146,14 @@ public class DeltaService : IDeltaService
             throw new Exception(status.Message);
         }
 
-        SqlWarehouseQuery query = new(_warehouseId!, schema, statement, catalog, disposition);
+        SqlWarehouseQuery query = new(_warehouseId!, schema, statement, catalog, disposition, parameters);
         SqlWarehouseResponse metadata = FetchMetadataAndAwaitSuccess(query);
-        bool headersWritten = false;
 
-        response.StatusCode = (int)HttpStatusCode.OK;
-        response.ContentType = "application/octet-stream";
+        string csv = GetCsvFromMetadata(metadata);
 
-        if (string.IsNullOrEmpty(filename)) filename = schema;
-        response.Headers.Add("Content-Disposition", $"attachment; filename=\"{filename}-data.csv\"");
-
-        StreamWriter sw = new(response.Body);
-
-        Result? currentResult = metadata.Result ?? throw new NullReferenceException("Warehouse returned no Result-object. Check query and connection details.");
-        while (currentResult != null)
-        {
-            string csv = FetchCsvFromResult(currentResult, metadata, ref headersWritten);
-            await sw.WriteAsync(csv);
-            currentResult = FetchNextResult(currentResult);
-
-            GC.Collect();
-        }
-
-        await sw.DisposeAsync();
+        return csv;
     }
+
     public SqlWarehouseResponse FetchMetadataAndAwaitSuccess(SqlWarehouseQuery query)
     {
         HttpRequestMessage request = new(HttpMethod.Post, _workspaceUri + "/api/2.0/sql/statements")
