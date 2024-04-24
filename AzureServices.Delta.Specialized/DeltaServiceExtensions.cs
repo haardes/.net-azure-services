@@ -6,6 +6,8 @@ namespace AzureServices.Delta.Specialized;
 
 public static class DeltaServiceExtensions
 {
+    // TODO: Handle empty results (no rows found)
+
     public static async Task WriteDeltaTableToBlob(this IDeltaService deltaService, BlobClient blob, string schema, string statement, string catalog = "hive_metastore", string disposition = "EXTERNAL_LINKS", string filename = "")
     {
         (bool IsInitialized, string Message) = deltaService.IsInitialized();
@@ -34,7 +36,6 @@ public static class DeltaServiceExtensions
         await sw.DisposeAsync();
     }
 
-    // TODO: Handle empty results (no rows found)
     public static async Task WriteDeltaTableToResponse(this IDeltaService deltaService, HttpResponse response, string schema, string statement, string catalog = "hive_metastore", string disposition = "EXTERNAL_LINKS", string filename = "")
     {
         (bool IsInitialized, string Message) = deltaService.IsInitialized();

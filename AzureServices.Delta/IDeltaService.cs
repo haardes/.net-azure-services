@@ -11,7 +11,7 @@ namespace AzureServices.Delta;
 
 public interface IDeltaService
 {
-    public string WarehouseId { get; }
+    public string? WarehouseId { get; }
 
     /// <summary>
     /// The <see cref="GetDeltaTableContent"/> operation queries a databricks SQL warehouse using the specified
@@ -23,10 +23,10 @@ public interface IDeltaService
     /// <param name="disposition"></param>
     /// <remarks>
     /// <para>A <see cref="KeyNotFoundException"/> will be thrown if the external link does not exists in the response.</para>
-    /// <para>A <see cref="ArgumentException"/> will be thrown if the response does not contain any columns in the schema.</para>
-    /// <para>A <see cref="ArgumentNullException"/> will be thrown if the response does not contain any content.</para>
+    /// <para>An <see cref="ArgumentException"/> will be thrown if the response does not contain any columns in the schema.</para>
+    /// <para>An <see cref="ArgumentNullException"/> will be thrown if the response does not contain any content.</para>
     /// <para>A <see cref="JsonException"/> will be thrown if the response cannot be deserialized as a <see cref="SqlWarehouseResponse"/>.</para>
-    /// <para>A <see cref="Exception"/> will be thrown if deserialization of the response results in a <see cref="null"/>-value.</para>
+    /// <para>An <see cref="Exception"/> will be thrown if deserialization of the response results in a <see cref="null"/>-value.</para>
     /// </remarks>
     string GetDeltaTableContent(string schema, string statement, string catalog = "hive_metastore", string disposition = "EXTERNAL_LINKS");
 
