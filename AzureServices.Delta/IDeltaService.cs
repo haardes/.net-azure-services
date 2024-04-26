@@ -21,6 +21,7 @@ public interface IDeltaService
     /// <param name="statement"></param>
     /// <param name="catalog"></param>
     /// <param name="disposition"></param>
+    /// <param name="format"></param>
     /// <remarks>
     /// <para>A <see cref="KeyNotFoundException"/> will be thrown if the external link does not exists in the response.</para>
     /// <para>An <see cref="ArgumentException"/> will be thrown if the response does not contain any columns in the schema.</para>
@@ -28,7 +29,7 @@ public interface IDeltaService
     /// <para>A <see cref="JsonException"/> will be thrown if the response cannot be deserialized as a <see cref="SqlWarehouseResponse"/>.</para>
     /// <para>An <see cref="Exception"/> will be thrown if deserialization of the response results in a <see cref="null"/>-value.</para>
     /// </remarks>
-    string GetDeltaTableContent(string schema, string statement, string catalog = "hive_metastore", string disposition = "EXTERNAL_LINKS");
+    string GetDeltaTableContent(string schema, string statement, string catalog = "hive_metastore", string disposition = "EXTERNAL_LINKS", string format = "csv");
 
     /// <summary>
     /// The <see cref="GetDeltaTableContent"/> operation queries a databricks SQL warehouse using the specified
@@ -39,6 +40,7 @@ public interface IDeltaService
     /// <param name="parameters"></param>
     /// <param name="catalog"></param>
     /// <param name="disposition"></param>
+    /// <param name="format"></param>
     /// <remarks>
     /// <para>A <see cref="KeyNotFoundException"/> will be thrown if the external link does not exists in the response.</para>
     /// <para>An <see cref="ArgumentException"/> will be thrown if the response does not contain any columns in the schema.</para>
@@ -46,7 +48,7 @@ public interface IDeltaService
     /// <para>A <see cref="JsonException"/> will be thrown if the response cannot be deserialized as a <see cref="SqlWarehouseResponse"/>.</para>
     /// <para>An <see cref="Exception"/> will be thrown if deserialization of the response results in a <see cref="null"/>-value.</para>
     /// </remarks>
-    string GetDeltaTableContent(string schema, string statement, IEnumerable<QueryParameters> parameters, string catalog = "hive_metastore", string disposition = "EXTERNAL_LINKS");
+    string GetDeltaTableContent(string schema, string statement, IEnumerable<QueryParameters> parameters, string catalog = "hive_metastore", string disposition = "EXTERNAL_LINKS", string format = "csv");
 
     /// <summary>
     /// The <see cref="FetchMetadataAndAwaitSuccess"/> operation sends a POST-request to databricks with a 
