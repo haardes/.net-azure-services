@@ -6,6 +6,8 @@ using System.Net;
 using System.Text.Json;
 using AzureServices.Core;
 using Microsoft.Extensions.Configuration;
+using System.Text.Json.Nodes;
+using System.Text.RegularExpressions;
 
 namespace AzureServices.Delta;
 
@@ -122,7 +124,7 @@ public class DeltaService : IDeltaService
         }
     }
 
-    public string GetDeltaTableContent(string schema, string statement, string catalog = "hive_metastore", string disposition = "EXTERNAL_LINKS")
+    public string GetDeltaTableContent(string schema, string statement, string catalog = "hive_metastore", string disposition = "EXTERNAL_LINKS", string format = "csv")
     {
         (bool IsInitialized, string Message) status = IsInitialized();
         if (!status.IsInitialized)
@@ -133,14 +135,24 @@ public class DeltaService : IDeltaService
         SqlWarehouseQuery query = new(_warehouseId!, schema, statement, catalog, disposition);
         SqlWarehouseResponse metadata = FetchMetadataAndAwaitSuccess(query);
 
-        string csv = GetCsvFromMetadata(metadata);
+        if (format.ToLower() == "csv")
+        {
+            string csv = GetCsvFromMetadata(metadata);
 
-        return csv;
+            return csv;
+        }
+
+        if (format.ToLower() == "json")
+        {
+            string json = GetJsonFromMetadata(metadata);
+
+            return json;
+        }
+
+        throw new ArgumentException("Format not recognized.", nameof(format));
     }
 
-    // TODO: Handle empty results (no rows found)
-
-    public async Task WriteDeltaTableToResponse(HttpResponse response, string schema, string statement, string catalog = "hive_metastore", string disposition = "EXTERNAL_LINKS", string filename = "")
+    public string GetDeltaTableContent(string schema, string statement, IEnumerable<QueryParameters> parameters, string catalog = "hive_metastore", string disposition = "EXTERNAL_LINKS", string format = "csv")
     {
         (bool IsInitialized, string Message) status = IsInitialized();
         if (!status.IsInitialized)
@@ -225,6 +237,254 @@ public class DeltaService : IDeltaService
         return csv;
     }
 
+    private string GetJsonFromMetadata(SqlWarehouseResponse metadata)
+    {
+        JsonObject root = new();
+        JsonArray data = new();
+
+        List<(string TypeText, string TypeName)> types = ExtractTypes(metadata);
+        List<string> headers = ExtractHeaders(metadata);
+
+        Result? currentResult = metadata.Result ?? throw new NullReferenceException("Warehouse returned no Result-object. Check query and connection details.");
+
+        while (currentResult != null)
+        {
+            string? externalLink = currentResult.ExternalLinks.FirstOrDefault()?.ExternalLink;
+            if (string.IsNullOrEmpty(externalLink))
+            {
+                throw new ArgumentException($"Warehouse-response contains no external link for statement {metadata.StatementId}. Check query.");
+            }
+
+            HttpRequestMessage dataRequest = new(HttpMethod.Get, externalLink);
+            HttpResponseMessage dataResponse = _deltaClient.Send(dataRequest);
+            string result = dataResponse.Content.ReadAsStringAsync().Result;
+
+            string[] csvRows = result.Replace("[[", "").Replace("]]", "").Split("],[");
+
+            foreach (string row in csvRows)
+            {
+                string[] fields = SplitAtCommasOutsideQuotationMarksAndObjectsAndArraysAndGeneric(row);
+
+                JsonObject entry = new();
+
+                for (int i = 0; i < fields.Length; i++)
+                {
+                    (string, string) type = types[i];
+                    string column = headers[i];
+                    string field = fields[i].Trim('"');
+
+                    entry.Add(column, ConvertFieldToJson(type, field));
+                }
+
+                data.Add(entry);
+            }
+
+            currentResult = FetchNextResult(currentResult);
+        }
+
+        root.Add("data", data);
+        root.Add("antall", data.Count);
+
+        return root.ToJsonString(new()
+        {
+            WriteIndented = true
+        });
+    }
+
+    private static string[] SplitAtCommasOutsideQuotationMarksAndObjectsAndArraysAndGeneric(string row)
+    {
+        List<string> result = new();
+
+        int quotationMarksSeen = 0;
+        int startIndex = 0;
+        bool hasSeenStartOfArray = false;
+        bool hasSeenStartOfObject = false;
+        bool hasSeenStartOfGeneric = false;
+
+        for (int i = 0; i < row.Length; i++)
+        {
+            char c = row[i];
+
+            if (c.Equals('[') && !hasSeenStartOfObject && !hasSeenStartOfGeneric)
+            {
+                hasSeenStartOfArray = true;
+            }
+
+            if (c.Equals(']') && hasSeenStartOfArray && !hasSeenStartOfObject && !hasSeenStartOfGeneric)
+            {
+                hasSeenStartOfArray = false;
+            }
+
+            if (c.Equals('{') && !hasSeenStartOfArray && !hasSeenStartOfGeneric)
+            {
+                hasSeenStartOfObject = true;
+            }
+
+            if (c.Equals('}') && hasSeenStartOfObject && !hasSeenStartOfArray && !hasSeenStartOfGeneric)
+            {
+                hasSeenStartOfObject = false;
+            }
+
+            if (c.Equals('<') && !hasSeenStartOfArray && !hasSeenStartOfObject)
+            {
+                hasSeenStartOfGeneric = true;
+            }
+
+            if (c.Equals('>') && hasSeenStartOfGeneric && !hasSeenStartOfArray && !hasSeenStartOfObject)
+            {
+                hasSeenStartOfGeneric = false;
+            }
+
+            if (c.Equals('"'))
+            {
+                quotationMarksSeen++;
+            }
+
+            if (c.Equals(','))
+            {
+                if (!hasSeenStartOfArray && !hasSeenStartOfObject && !hasSeenStartOfGeneric && quotationMarksSeen % 2 == 0)
+                {
+                    result.Add(row[startIndex..i]);
+                    startIndex = i + 1;
+                }
+            }
+
+            if (i == row.Length - 1)
+            {
+                result.Add(row[startIndex..row.Length]);
+            }
+        }
+
+        return result.ToArray();
+    }
+
+    private JsonNode? ConvertFieldToJson((string TypeText, string TypeName) type, string field)
+    {
+        try
+        {
+            switch (type.TypeName)
+            {
+                case "STRING":
+                    return field;
+                case "BYTE":
+                    return byte.Parse(field);
+                case "SHORT":
+                    return short.Parse(field);
+                case "INT":
+                    return int.Parse(field);
+                case "LONG":
+                    return long.Parse(field);
+                case "FLOAT":
+                    return float.Parse(field);
+                case "DOUBLE":
+                    return double.Parse(field);
+                case "DECIMAL":
+                    return decimal.Parse(field);
+                case "BOOLEAN":
+                    return bool.Parse(field);
+                case "TIMESTAMP":
+                    return field;
+                case "ARRAY":
+                    return ParseArrayToJson(type, field);
+                case "MAP":
+                    return ParseMapToJson(type, field);
+                case "STRUCT":
+                    return ParseStructToJson(type, field);
+                default:
+                    return field;
+            }
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e);
+            return null;
+        }
+    }
+
+    private JsonNode? ParseArrayToJson((string TypeText, string TypeName) type, string field)
+    {
+        JsonArray jsonArray = new();
+
+        int firstArrowIndex = type.TypeText.IndexOf('<');
+        int lastArrowIndex = type.TypeText.LastIndexOf('>');
+
+        //Inner type_text = string between first and last arrows (<>)
+        string innerTypeText = type.TypeText[(firstArrowIndex + 1)..lastArrowIndex];
+
+        //Inner type_name = string before first arrow (<) if an arrow exists, if not: same as innerTypeText
+        int firstInnerArrow = innerTypeText.IndexOf('<');
+        string innerTypeName = firstInnerArrow > -1 ? innerTypeText[..firstInnerArrow] : innerTypeText;
+
+        // Values = field without [] and split at commas (each entry needs to be trimmed as before (remove " around each entry))
+        List<string> arrayValues = SplitAtCommasOutsideQuotationMarksAndObjectsAndArraysAndGeneric(field.Trim('[', ']'))
+                                    .Select(val => val.Trim('"', '\\'))
+                                    .ToList();
+
+        arrayValues.ForEach(val => jsonArray.Add(ConvertFieldToJson((innerTypeText, innerTypeName), val)));
+
+        return jsonArray;
+    }
+
+    private JsonNode? ParseMapToJson((string TypeText, string TypeName) type, string field)
+    {
+        JsonObject jsonMap = new();
+
+        int firstArrowIndex = type.TypeText.IndexOf('<');
+        int lastArrowIndex = type.TypeText.LastIndexOf('>');
+
+        //Inner type = string between first and last arrows (<>)
+        // * Note that innerTypeText will be keyType + valueType ie. "STRING, INT" or "INT, ARRAY<STRING>"
+        string innerTypeText = type.TypeText[(firstArrowIndex + 1)..lastArrowIndex];
+
+        // * We don't care about keyType, JSON only allows strings as properties for objects (which a map must be sent as)
+        // * Because valueType may be of a nested structure, ie. "STRING, MAP<STRING, INT>", we need to find everything AFTER the first ","
+        int indexOfComma = innerTypeText.IndexOf(',');
+        string valueType = innerTypeText[(indexOfComma + 1)..].Trim();
+
+        //Inner type_name = string before first arrow (<) if an arrow exists, if not: same as innerTypeText
+        int firstInnerArrow = valueType.IndexOf('<');
+        string innerTypeName = firstInnerArrow > -1 ? valueType[..firstInnerArrow] : valueType;
+
+        JsonNode obj = JsonNode.Parse(Regex.Unescape(field))!;
+
+        foreach (var key in obj.AsObject())
+        {
+            jsonMap.Add(key.Key, ConvertFieldToJson((valueType, innerTypeName), key.Value!.ToJsonString()));
+        }
+
+        return jsonMap;
+    }
+
+    private JsonNode? ParseStructToJson((string TypeText, string TypeName) type, string field)
+    {
+        JsonObject jsonStruct = new();
+
+        int firstArrowIndex = type.TypeText.IndexOf('<');
+        int lastArrowIndex = type.TypeText.LastIndexOf('>');
+
+        //Inner type = string between first and last arrows (<>)
+        // * Note that innerTypeText will be fieldname + valueType ie. "Field1: STRING, Field2: INT" or "Field1: INT, Field2: ARRAY<STRING>"
+        string innerTypeText = type.TypeText[(firstArrowIndex + 1)..lastArrowIndex];
+        string[] innerTypeTexts = SplitAtCommasOutsideQuotationMarksAndObjectsAndArraysAndGeneric(innerTypeText);
+
+        JsonNode obj = JsonNode.Parse(Regex.Unescape(field))!;
+
+        foreach (string inner in innerTypeTexts)
+        {
+            int firstSeparator = inner.IndexOf(":");
+            string column = inner[..firstSeparator].Trim();
+            string actualType = inner[(firstSeparator + 1)..].Trim();
+
+            //Inner type_name = string before first arrow (<) if an arrow exists, if not: same as valueType
+            int firstInnerArrow = actualType.IndexOf('<');
+            string innerTypeName = firstInnerArrow > -1 ? actualType[..firstInnerArrow] : actualType;
+
+            jsonStruct.Add(column, ConvertFieldToJson((actualType, innerTypeName), obj[column]!.ToJsonString().Trim('"')));
+        }
+
+        return jsonStruct;
+    }
+
     public Result? FetchNextResult(Result currentResult)
     {
         string? nextChunkInternalLink = currentResult.ExternalLinks.FirstOrDefault()?.NextChunkInternalLink;
@@ -300,6 +560,31 @@ public class DeltaService : IDeltaService
         }
 
         return headers;
+    }
+
+    private static List<(string TypeText, string TypeName)> ExtractTypes(SqlWarehouseResponse response)
+    {
+        List<(string TypeText, string TypeName)> types = new();
+
+        List<Column>? columns = response.Manifest?.Schema?.Columns;
+
+        if (columns == null || columns.Count == 0)
+        {
+            throw new ArgumentException("Columns list is empty, no columns found in schema.");
+        }
+
+        // Ensure elements are in order of their position in the table
+        columns.Sort((first, second) =>
+        {
+            return first.CompareTo(second);
+        });
+
+        foreach (Column column in columns)
+        {
+            types.Add((column.TypeText, column.TypeName));
+        }
+
+        return types;
     }
 
     /// <summary>
