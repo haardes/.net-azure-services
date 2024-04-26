@@ -163,9 +163,21 @@ public class DeltaService : IDeltaService
         SqlWarehouseQuery query = new(_warehouseId!, schema, statement, catalog, disposition, parameters);
         SqlWarehouseResponse metadata = FetchMetadataAndAwaitSuccess(query);
 
-        string csv = GetCsvFromMetadata(metadata);
+        if (format.ToLower() == "csv")
+        {
+            string csv = GetCsvFromMetadata(metadata);
 
-        return csv;
+            return csv;
+        }
+
+        if (format.ToLower() == "json")
+        {
+            string json = GetJsonFromMetadata(metadata);
+
+            return json;
+        }
+
+        throw new ArgumentException("Format not recognized.", nameof(format));
     }
 
     public SqlWarehouseResponse FetchMetadataAndAwaitSuccess(SqlWarehouseQuery query)
