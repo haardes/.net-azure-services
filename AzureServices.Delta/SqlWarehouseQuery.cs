@@ -13,6 +13,16 @@ public class SqlWarehouseQuery
         Disposition = disposition;
     }
 
+    public SqlWarehouseQuery(string warehouseId, string schema, string statement, string catalog, string disposition, IEnumerable<QueryParameters> parameters)
+    {
+        WarehouseId = warehouseId;
+        Schema = schema;
+        Statement = statement;
+        Catalog = catalog;
+        Disposition = disposition;
+        Parameters = parameters;
+    }
+
     [JsonPropertyName("warehouse_id")]
     public string WarehouseId { get; set; }
 
@@ -27,4 +37,7 @@ public class SqlWarehouseQuery
 
     [JsonPropertyName("disposition")]
     public string Disposition { get; set; }
+
+    [JsonPropertyName("parameters")]
+    public IEnumerable<QueryParameters>? Parameters { get; set; }
 }
