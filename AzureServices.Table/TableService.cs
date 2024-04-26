@@ -1,4 +1,6 @@
-﻿using Azure.Data.Tables;
+﻿using System.Linq.Expressions;
+using Azure;
+using Azure.Data.Tables;
 using AzureServices.Core;
 
 namespace AzureServices.Table;
@@ -68,5 +70,61 @@ public class TableService : ITableService
         }
 
         return new(new($"https://{storage}.table.core.windows.net/"), new TableSharedKeyCredential(storage, key));
+    }
+
+    public TableClient GetTable(string tableName, bool createIfNotExists = false)
+    {
+        TableClient table = _tableServiceClient.GetTableClient(tableName);
+
+        if (createIfNotExists)
+        {
+            if (table.CreateIfNotExists() != null)
+            {
+                Console.WriteLine($"Table {tableName} created.");
+            }
+        }
+
+        return table;
+    }
+
+    public static void AddEntityToTable<T>(TableClient table, T entity) where T : class, ITableEntity, new()
+    {
+        table.AddEntity(entity);
+    }
+
+    public void AddEntityToTable<T>(string tableName, T entity) where T : class, ITableEntity, new()
+    {
+        TableClient table = GetTable(tableName);
+        table.AddEntity(entity);
+    }
+
+    public static void AddEntitiesToTable<T>(TableClient table, IEnumerable<T> entities) where T : class, ITableEntity, new()
+    {
+        foreach (var entity in entities)
+        {
+            table.AddEntity(entity);
+        }
+    }
+
+    public void AddEntitiesToTable<T>(string tableName, IEnumerable<T> entities) where T : class, ITableEntity, new()
+    {
+        TableClient table = GetTable(tableName);
+
+        foreach (var entity in entities)
+        {
+            table.AddEntity(entity);
+        }
+    }
+
+    public static List<T> QueryTable<T>(TableClient table, Expression<Func<T, bool>> query) where T : class, ITableEntity, new()
+    {
+        return table.Query(query).ToList();
+    }
+
+    public List<T> QueryTable<T>(string tableName, Expression<Func<T, bool>> query) where T : class, ITableEntity, new()
+    {
+        TableClient table = GetTable(tableName);
+
+        return table.Query(query).ToList();
     }
 }
